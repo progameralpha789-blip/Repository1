@@ -1,12 +1,211 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Ejemplo de Frontend Simple</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat con IA Simulado</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    .chat-container {
+      flex: 1;
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: #4a90e2;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      height: 300px;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message.user {
+      align-items: flex-end;
+    }
+
+    .message.bot {
+      align-items: flex-start;
+    }
+
+    .message .bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 15px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .message.user .bubble {
+      background: #4a90e2;
+      color: white;
+      margin-right: 10px;
+    }
+
+    .message.bot .bubble {
+      background: #f1f3f4;
+      color: #333;
+      margin-left: 10px;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      padding: 15px;
+      background: #fff;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+
+    .chat-input button {
+      padding: 12px 20px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .chat-input button:hover {
+      background: #357ABD;
+    }
+
+    .typing-indicator {
+      font-style: italic;
+      color: #888;
+      margin-left: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .chat-container {
+        width: 95%;
+        margin: 10px auto;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>¡Bienvenido a mi página web!</h1>
-    <p>Este es un ejemplo básico de un frontend en HTML.</p>
-    <button onclick="alert('¡Has hecho clic en el botón!')">Haz clic aquí</button>
+
+  <div class="chat-container">
+    <div class="chat-header">Chat con Asistente de IA</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="message bot">
+        <div class="bubble">¡Hola! Soy tu asistente de IA. ¿En qué puedo ayudarte hoy?</div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Escribe tu mensaje..." />
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    const chatMessages = document.getElementById("chatMessages");
+    const userInput = document.getElementById("userInput");
+
+    // Respuestas predefinidas según palabras clave
+    const botResponses = {
+      "hola": "¡Hola de nuevo! ¿Qué necesitas?",
+      "hola|hi|hey": "¡Hola! ¿Cómo estás?",
+      "¿cómo estás?|how are you": "¡Estoy bien, gracias! ¿Y tú?",
+      "adios|chao|bye": "¡Adiós! ¿Te puedo ayudar en algo más?",
+      "nombre|who are you": "Soy un asistente de IA simulado.",
+      "edad|how old": "No tengo edad, pero siempre estoy aprendiendo.",
+      "gracias|thank you": "¡De nada! ¿Hay algo más en lo que pueda ayudarte?",
+      "default": "Lo siento, no entendí eso. ¿Puedes reformularlo?"
+    };
+
+    function sendMessage() {
+      const text = userInput.value.trim().toLowerCase();
+      if (!text) return;
+
+      addMessage(text, "user");
+      userInput.value = "";
+
+      // Simular tiempo de respuesta
+      setTimeout(() => {
+        const response = getBotResponse(text);
+        addMessage(response, "bot");
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 600);
+    }
+
+    function addMessage(text, sender) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", sender);
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      bubble.textContent = text;
+      msgDiv.appendChild(bubble);
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function getBotResponse(input) {
+      // Buscar coincidencias por palabras clave
+      for (let pattern in botResponses) {
+        if (pattern === "default") continue;
+        const keys = pattern.split("|");
+        for (let key of keys) {
+          if (input.includes(key.trim())) {
+            return botResponses[pattern];
+          }
+        }
+      }
+      return botResponses["default"];
+    }
+
+    // Permitir enviar con Enter
+    userInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
+
 </body>
 </html>
